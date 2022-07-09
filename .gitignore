@@ -153,3 +153,4 @@ cython_debug/
 
 # local ignore
 config.py
+cryptobase.sqlite
