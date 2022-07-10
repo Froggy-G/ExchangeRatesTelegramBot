@@ -35,14 +35,19 @@ async def send_current_exchange_rates(message: types.Message):
     else:
         await message.answer("Вы не добавили валюту для отслеживания")
 
+# @disp.message_handler(commands=['allvalue'])
+# async def all_cryptocurrency(message: types.Message):
+#     names = get_names_cryptocurrency()
+#     print(names)
+#     await message.answer("kek")
 
 @disp.message_handler(commands=['addvalue'])
 async def add_cryptocurrency(message: types.Message):
 
-    await Form.cryptocurrency.set()
-    await message.answer("Введите название криптовалюты, например BTC")
+    await Form.add_cryptocurrency.set()
+    await message.answer("Введите название криптовалюты, например SafeGalaxy")
 
-@disp.message_handler(state=Form.cryptocurrency)
+@disp.message_handler(state=Form.add_cryptocurrency)
 async def process_add_cryptocurrency(message: types.Message, state: FSMContext):
 
     names = get_names_cryptocurrency()
@@ -58,6 +63,27 @@ async def process_add_cryptocurrency(message: types.Message, state: FSMContext):
         await message.reply(f"Нет такой криптовалюты")
     await state.finish()
 
+@disp.message_handler(commands=['deletevalue'])
+async def delete_cryptocurrency(message: types.Message):
+
+    await Form.delete_cryptocurrency.set()
+    await message.answer("Введите название криптовалюты, например Ethereum Token")
+
+@disp.message_handler(state=Form.delete_cryptocurrency)
+async def process_delete_cryptocurrency(message: types.Message, state: FSMContext):
+
+    names = get_names_cryptocurrency()
+
+    if message.text in names:
+        if message.text in db.get_items(message.from_user.id):
+            
+            db.delete_item(message.text, message.from_user.id)
+            await message.reply(f"Вы удалили {message.text} из списка отслеживаемых")
+        else:
+            await message.reply(f"Нет такой криптовалюты в списке отслеживаемых")
+    else:
+        await message.reply(f"Нет такой криптовалюты")
+    await state.finish()
 
 if __name__ == '__main__':
     db.setup()
