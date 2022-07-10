@@ -7,6 +7,17 @@ from config import API_TOKEN
 from commands import get_names_cryptocurrency, compare_two_values
 from db import DBHelper
 from states import Form
+from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
+
+# keyboard and buttons
+button_myvalue = KeyboardButton('/myvalue')
+button_addvalue = KeyboardButton('/addvalue')
+button_deletevalue = KeyboardButton('/deletevalue')
+button_viewvalue = KeyboardButton('/viewvalue')
+button_help = KeyboardButton('/help')
+
+keyboard = ReplyKeyboardMarkup()
+keyboard.add(button_myvalue, button_addvalue, button_deletevalue, button_viewvalue, button_help)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -20,9 +31,13 @@ storage = MemoryStorage()
 disp = Dispatcher(bot, storage=storage)
 
 # message handler/sendler
-@disp.message_handler(commands=['start', 'help'])
+@disp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
-    await message.reply("Привет, я Exchange_rates бот!\nСлежу за текущим курсом криптовалют.")
+    await message.reply("Привет, я Exchange_rates бот!\nСлежу за текущим курсом криптовалют.\nЕсли что не понятно выбирай /help", reply_markup=keyboard)
+
+@disp.message_handler(commands=['help'])
+async def send_help(message: types.Message):
+    await message.reply("Все очень просто:\n/myvalue показывает список валют на которые ты подписан\n/addvalue добавляет валюту в список\n/deletevalue удаляет валюту из списка\n/viewvalue просмотр курса валют в данную секунду к USDT")
 
 @disp.message_handler(commands=['myvalue'])
 async def send_current_exchange_rates(message: types.Message):
