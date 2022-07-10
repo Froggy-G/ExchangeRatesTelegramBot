@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher, types, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from config import API_TOKEN
-from commands import get_names_cryptocurrency, compare_two_values
+from commands import get_names_cryptocurrency, get_USDT_value, get_exchange_rates
 from db import DBHelper
 from states import Form
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
@@ -105,9 +105,17 @@ async def view_cryptocurrency(message: types.Message):
 
     if db.get_items(message.from_user.id):
         all_items = ''
+        cryptocurrency_values = get_exchange_rates()
+
+        for i in cryptocurrency_values:
+            if i['name'] == "Tether USD":
+                price = i['price']
 
         for item in db.get_items(message.from_user.id):
-            all_items += item + " is " + str(compare_two_values(item)) + ' USDT\n'
+            for i in cryptocurrency_values:
+                if i['name'] == item:
+                    result = float(i['price']) / float(price)
+            all_items += item + " is " + str(result) + ' USDT\n'
 
         await message.answer(all_items)
     else:
