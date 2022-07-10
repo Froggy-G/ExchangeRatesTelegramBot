@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher, types, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from config import API_TOKEN
-from commands import get_exchange_rates, get_names_cryptocurrency
+from commands import get_names_cryptocurrency, compare_two_values
 from db import DBHelper
 from states import Form
 
@@ -84,6 +84,20 @@ async def process_delete_cryptocurrency(message: types.Message, state: FSMContex
     else:
         await message.reply(f"Нет такой криптовалюты")
     await state.finish()
+
+@disp.message_handler(commands=['viewvalue'])
+async def view_cryptocurrency(message: types.Message):
+
+    if db.get_items(message.from_user.id):
+        all_items = ''
+
+        for item in db.get_items(message.from_user.id):
+            all_items += item + " is " + str(compare_two_values(item)) + ' USDT\n'
+
+        await message.answer(all_items)
+    else:
+        await message.answer("Нечего отслеживать :(")
+
 
 if __name__ == '__main__':
     db.setup()

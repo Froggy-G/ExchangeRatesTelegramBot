@@ -10,9 +10,26 @@ def get_exchange_rates():
     return data
 
 def get_names_cryptocurrency():
-    result = []
+    names = []
 
     for i in get_exchange_rates():
-        result.append(i['name'])
+        names.append(i['name'])
 
-    return result
+    return names
+
+def get_USDT_value():
+
+    for i in get_exchange_rates():
+        if i['name'] == "Tether USD":
+            price = i['price']
+
+    return price
+
+def compare_two_values(second_value):
+    USDT_value = get_USDT_value()
+
+    for i in get_exchange_rates():
+        if i['name'] == second_value:
+            compare = float(i['price']) / float(USDT_value)
+    
+    return compare
