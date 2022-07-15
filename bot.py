@@ -1,10 +1,12 @@
 import logging
+import numpy as np
+import math
 
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from config import API_TOKEN
-from commands import get_names_cryptocurrency, get_USDT_value, get_exchange_rates
+from commands import get_names_cryptocurrency, get_exchange_rates
 from db import DBHelper
 from states import Form
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
@@ -14,10 +16,11 @@ button_myvalue = KeyboardButton('/myvalue')
 button_addvalue = KeyboardButton('/addvalue')
 button_deletevalue = KeyboardButton('/deletevalue')
 button_viewvalue = KeyboardButton('/viewvalue')
+button_allvalue = KeyboardButton('/allvalue')
 button_help = KeyboardButton('/help')
 
 keyboard = ReplyKeyboardMarkup()
-keyboard.add(button_myvalue, button_addvalue, button_deletevalue, button_viewvalue, button_help)
+keyboard.add(button_myvalue, button_addvalue, button_deletevalue, button_viewvalue, button_allvalue, button_help)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -37,7 +40,7 @@ async def send_welcome(message: types.Message):
 
 @disp.message_handler(commands=['help'])
 async def send_help(message: types.Message):
-    await message.reply("Все очень просто:\n/myvalue показывает список валют на которые ты подписан\n/addvalue добавляет валюту в список\n/deletevalue удаляет валюту из списка\n/viewvalue просмотр курса валют в данную секунду к USDT")
+    await message.reply("Все очень просто:\n/myvalue показывает список валют на которые ты подписан\n/addvalue добавляет валюту в список\n/deletevalue удаляет валюту из списка\n/viewvalue просмотр курса валют в данную секунду к USDT\n/allvalue увидеть список всех возможных криптовалют для отслеживания")
 
 @disp.message_handler(commands=['myvalue'])
 async def send_current_exchange_rates(message: types.Message):
@@ -50,11 +53,16 @@ async def send_current_exchange_rates(message: types.Message):
     else:
         await message.answer("Вы не добавили валюту для отслеживания")
 
-# @disp.message_handler(commands=['allvalue'])
-# async def all_cryptocurrency(message: types.Message):
-#     names = get_names_cryptocurrency()
-#     print(names)
-#     await message.answer("kek")
+@disp.message_handler(commands=['allvalue'])
+async def all_cryptocurrency(message: types.Message):
+    names = get_names_cryptocurrency()
+
+    count_characters = len(str(names))
+    count_msg = math.ceil(count_characters / 4096) # 4096 telegram limit characters
+    parts_of_names = np.array_split(names, count_msg)
+
+    for part in parts_of_names:
+        await message.answer(list(part))
 
 @disp.message_handler(commands=['addvalue'])
 async def add_cryptocurrency(message: types.Message):
