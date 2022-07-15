@@ -56,6 +56,7 @@ async def send_current_exchange_rates(message: types.Message):
 @disp.message_handler(commands=['allvalue'])
 async def all_cryptocurrency(message: types.Message):
     names = get_names_cryptocurrency()
+    names.sort()
 
     count_characters = len(str(names))
     count_msg = math.ceil(count_characters / 4096) # 4096 telegram limit characters
@@ -123,7 +124,7 @@ async def view_cryptocurrency(message: types.Message):
             for i in cryptocurrency_values:
                 if i['name'] == item:
                     result = float(i['price']) / float(price)
-            all_items += item + " is " + str(result) + ' USDT\n'
+            all_items += item + " = " + str(result) + ' USDT\n'
 
         await message.answer(all_items)
     else:
