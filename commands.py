@@ -1,5 +1,4 @@
 import requests
-import json
 
 def get_exchange_rates():
     base_url = 'https://api.pancakeswap.info/api/tokens'

@@ -1,6 +1,8 @@
 import logging
 import numpy as np
 import math
+import threading
+import schedule
 
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -10,6 +12,36 @@ from commands import get_names_cryptocurrency, get_exchange_rates
 from db import DBHelper
 from states import Form
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
+from time import sleep
+
+# Initialize project
+db = DBHelper()
+
+bot = Bot(token=API_TOKEN)
+storage = MemoryStorage()
+disp = Dispatcher(bot, storage=storage)
+
+# collecting cryptocurrency data service
+def collecting_cryptocurrency_data():
+    db.delete_rates()
+
+    cryptocurrency_values = get_exchange_rates()
+
+    for i in cryptocurrency_values:
+        if i['name'] == "Tether USD":
+            price = i['price']
+
+    for i in cryptocurrency_values:
+        db.add_rates(i['name'], str(float(i['price'])/ float(price)))
+
+schedule.every().day.at("12:00").do(collecting_cryptocurrency_data)
+
+def checking_time():
+    while True:
+        schedule.run_pending()
+        sleep(59)
+
+collecting_cryptocurrency = threading.Thread(target=checking_time)
 
 # keyboard and buttons
 button_myvalue = KeyboardButton('/myvalue')
@@ -24,14 +56,6 @@ keyboard.add(button_myvalue, button_addvalue, button_deletevalue, button_viewval
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-
-# Initialize bot, dispatcher and database
-db = DBHelper()
-
-bot = Bot(token=API_TOKEN)
-
-storage = MemoryStorage()
-disp = Dispatcher(bot, storage=storage)
 
 # message handler/sendler
 @disp.message_handler(commands=['start'])
@@ -133,4 +157,6 @@ async def view_cryptocurrency(message: types.Message):
 
 if __name__ == '__main__':
     db.setup()
+    collecting_cryptocurrency.start()
+
     executor.start_polling(disp, skip_updates=True)
