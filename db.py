@@ -50,6 +50,13 @@ class DBHelper:
         self.conn.execute(stmt)
         self.conn.commit()
 
-    # def get_rates(self):
-    #     stmt = "SELECT * FROM rates"
-    #     return self.conn.execute(stmt)
+    def get_rates(self):
+        stmt = "SELECT * FROM rates"
+        data = dict()
+        
+        raw_data = [x for x in self.conn.execute(stmt)]
+        
+        for x, y in raw_data:
+            data[x] = y
+
+        return data

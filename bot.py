@@ -140,6 +140,8 @@ async def view_cryptocurrency(message: types.Message):
         all_items = ''
         cryptocurrency_values = get_exchange_rates()
 
+        data = db.get_rates()
+
         for i in cryptocurrency_values:
             if i['name'] == "Tether USD":
                 price = i['price']
@@ -147,10 +149,16 @@ async def view_cryptocurrency(message: types.Message):
         for item in db.get_items(message.from_user.id):
             for i in cryptocurrency_values:
                 if i['name'] == item:
-                    result = float(i['price']) / float(price)
-            all_items += item + " = " + str(result) + ' USDT\n'
+                    value_in_USDT = float(i['price']) / float(price)
+                    old_price = float(data[item])
 
-        await message.answer(all_items)
+                    percent = 100 * value_in_USDT / old_price
+
+                    dynamic = round(percent - 100, 2)
+
+            all_items += item + " = " + str(value_in_USDT) + ' USDT ' + str(dynamic) + '%\n'
+
+        await message.answer('Динамика за 24 часа:\n' + all_items)
     else:
         await message.answer("Нечего отслеживать :(")
 
