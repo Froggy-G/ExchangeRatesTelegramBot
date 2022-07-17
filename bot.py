@@ -64,7 +64,7 @@ async def send_welcome(message: types.Message):
 
 @disp.message_handler(commands=['help'])
 async def send_help(message: types.Message):
-    await message.reply("Все очень просто:\n/myvalue показывает список валют на которые ты подписан\n/addvalue добавляет валюту в список\n/deletevalue удаляет валюту из списка\n/viewvalue просмотр курса валют в данную секунду к USDT\n/allvalue увидеть список всех возможных криптовалют для отслеживания")
+    await message.reply("Все очень просто:\n/myvalue показывает список валют на которые ты подписан\n/addvalue добавляет валюту в список\n/deletevalue удаляет валюту из списка\n/viewvalue просмотр курса валют в данную секунду к USDT\n/allvalue увидеть список всех возможных криптовалют для отслеживания", reply_markup=keyboard)
 
 @disp.message_handler(commands=['myvalue'])
 async def send_current_exchange_rates(message: types.Message):
@@ -73,9 +73,9 @@ async def send_current_exchange_rates(message: types.Message):
 
         for item in db.get_items(message.from_user.id):
             all_items += item + ', '
-        await message.answer(all_items)
+        await message.answer(all_items, reply_markup=keyboard)
     else:
-        await message.answer("Вы не добавили валюту для отслеживания")
+        await message.answer("Вы не добавили валюту для отслеживания", reply_markup=keyboard)
 
 @disp.message_handler(commands=['allvalue'])
 async def all_cryptocurrency(message: types.Message):
@@ -87,13 +87,13 @@ async def all_cryptocurrency(message: types.Message):
     parts_of_names = np.array_split(names, count_msg)
 
     for part in parts_of_names:
-        await message.answer(list(part))
+        await message.answer(list(part), reply_markup=keyboard)
 
 @disp.message_handler(commands=['addvalue'])
 async def add_cryptocurrency(message: types.Message):
 
     await Form.add_cryptocurrency.set()
-    await message.answer("Введите название криптовалюты, например SafeGalaxy")
+    await message.answer("Введите название криптовалюты, например SafeGalaxy", reply_markup=ReplyKeyboardRemove())
 
 @disp.message_handler(state=Form.add_cryptocurrency)
 async def process_add_cryptocurrency(message: types.Message, state: FSMContext):
@@ -104,18 +104,18 @@ async def process_add_cryptocurrency(message: types.Message, state: FSMContext):
         if message.text not in db.get_items(message.from_user.id):
             
             db.add_item(message.text, message.from_user.id)
-            await message.reply(f"Вы добавили {message.text} в список отслеживаемых")
+            await message.reply(f"Вы добавили {message.text} в список отслеживаемых", reply_markup=keyboard)
         else:
-            await message.reply(f"Уже есть в списке отслеживаемых")
+            await message.reply(f"Уже есть в списке отслеживаемых", reply_markup=keyboard)
     else:
-        await message.reply(f"Нет такой криптовалюты")
+        await message.reply(f"Нет такой криптовалюты", reply_markup=keyboard)
     await state.finish()
 
 @disp.message_handler(commands=['deletevalue'])
 async def delete_cryptocurrency(message: types.Message):
 
     await Form.delete_cryptocurrency.set()
-    await message.answer("Введите название криптовалюты, например Ethereum Token")
+    await message.answer("Введите название криптовалюты, например Ethereum Token", reply_markup=ReplyKeyboardRemove())
 
 @disp.message_handler(state=Form.delete_cryptocurrency)
 async def process_delete_cryptocurrency(message: types.Message, state: FSMContext):
@@ -126,11 +126,11 @@ async def process_delete_cryptocurrency(message: types.Message, state: FSMContex
         if message.text in db.get_items(message.from_user.id):
             
             db.delete_item(message.text, message.from_user.id)
-            await message.reply(f"Вы удалили {message.text} из списка отслеживаемых")
+            await message.reply(f"Вы удалили {message.text} из списка отслеживаемых", reply_markup=keyboard)
         else:
-            await message.reply(f"Нет такой криптовалюты в списке отслеживаемых")
+            await message.reply(f"Нет такой криптовалюты в списке отслеживаемых", reply_markup=keyboard)
     else:
-        await message.reply(f"Нет такой криптовалюты")
+        await message.reply(f"Нет такой криптовалюты", reply_markup=keyboard)
     await state.finish()
 
 @disp.message_handler(commands=['viewvalue'])
@@ -158,9 +158,9 @@ async def view_cryptocurrency(message: types.Message):
 
             all_items += item + " = " + str(value_in_USDT) + ' USDT ' + str(dynamic) + '%\n'
 
-        await message.answer('Динамика за 24 часа:\n' + all_items)
+        await message.answer('Динамика за 24 часа:\n' + all_items, reply_markup=keyboard)
     else:
-        await message.answer("Нечего отслеживать :(")
+        await message.answer("Нечего отслеживать :(", reply_markup=keyboard)
 
 
 if __name__ == '__main__':
