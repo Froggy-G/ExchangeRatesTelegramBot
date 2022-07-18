@@ -26,7 +26,7 @@ def checking_time():
         schedule.run_pending()
         sleep(59)
 
-schedule.every().day.at("14:48").do(collecting_cryptocurrency_data)
+schedule.every().day.at("12:00").do(collecting_cryptocurrency_data)
 collecting_cryptocurrency = threading.Thread(target=checking_time)
 
 # message handler
