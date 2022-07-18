@@ -1,40 +1,38 @@
 import requests
 import schedule
 import threading
-import numpy as np
+import numpy
 import math
 
-from db import DBHelper
-from time import sleep
+from database import DBHelper
 
-db = DBHelper()
+database = DBHelper()
 
 # collecting cryptocurrency data service
 def collecting_cryptocurrency_data():
-    db.delete_rates()
+    database.delete_rates()
     cryptocurrency_values = get_exchange_rates()
 
-    for i in cryptocurrency_values:
-        if i['name'] == "Tether USD":
-            price = i['price']
+    for value in cryptocurrency_values:
+        if value['name'] == "Tether USD":
+            price = value['price']
 
-    for i in cryptocurrency_values:
-        db.add_rates(i['name'], str(float(i['price'])/ float(price)))
+    for value in cryptocurrency_values:
+        database.add_rates(value['name'], str(float(value['price'])/ float(price)))
 
 def checking_time():
     while True:
         schedule.run_pending()
-        sleep(59)
 
 schedule.every().day.at("12:00").do(collecting_cryptocurrency_data)
 collecting_cryptocurrency = threading.Thread(target=checking_time)
 
 # message handler
 def my_value(message):
-    if db.get_items(message.from_user.id):
+    if database.get_items(message.from_user.id):
         all_items = ""
 
-        for item in db.get_items(message.from_user.id):
+        for item in database.get_items(message.from_user.id):
             all_items += f"{item}, "
         return f"Вы следите за:\n{all_items}"
     else:
@@ -46,7 +44,7 @@ def all_value():
 
     count_characters = len(str(names))
     count_msg = math.ceil(count_characters / 4096) # 4096 telegram limit characters
-    parts_of_names = np.array_split(names, count_msg)
+    parts_of_names = numpy.array_split(names, count_msg)
 
     return parts_of_names
 
@@ -54,8 +52,8 @@ def add_cryptocurrency(message):
     names = get_names_cryptocurrency()
 
     if message.text in names:
-        if message.text not in db.get_items(message.from_user.id):
-            db.add_item(message.text, message.from_user.id)
+        if message.text not in database.get_items(message.from_user.id):
+            database.add_item(message.text, message.from_user.id)
             return f"Вы добавили {message.text} в список отслеживаемых"
         else:
             return "Уже есть в списке отслеживаемых"
@@ -66,8 +64,8 @@ def delete_cryptocurrency(message):
     names = get_names_cryptocurrency()
 
     if message.text in names:
-        if message.text in db.get_items(message.from_user.id):
-            db.delete_item(message.text, message.from_user.id)
+        if message.text in database.get_items(message.from_user.id):
+            database.delete_item(message.text, message.from_user.id)
             return f"Вы удалили {message.text} из списка отслеживаемых"
         else:
             return "Нет такой криптовалюты в списке отслеживаемых"
@@ -75,26 +73,26 @@ def delete_cryptocurrency(message):
         return "Нет такой криптовалюты"
 
 def view_cryptocurrency(message):
-    if db.get_items(message.from_user.id):
+    if database.get_items(message.from_user.id):
         all_items = ""
         cryptocurrency_values = get_exchange_rates()
-        data = db.get_rates()
+        data = database.get_rates()
 
-        for i in cryptocurrency_values:
-            if i['name'] == "Tether USD":
-                price = i['price']
+        for value in cryptocurrency_values:
+            if value['name'] == "Tether USD":
+                price = value['price']
         
-        for item in db.get_items(message.from_user.id):
-            for i in cryptocurrency_values:
-                if i['name'] == item:
-                    value_in_USDT = float(i['price']) / float(price)
+        for item in database.get_items(message.from_user.id):
+            for value in cryptocurrency_values:
+                if value['name'] == item:
+                    value_in_usdt = float(value['price']) / float(price)
                     if data:
                         old_price = float(data[item])
-                        percent = 100 * value_in_USDT / old_price
+                        percent = 100 * value_in_usdt / old_price
                         dynamic = round(percent - 100, 2)
-                        all_items += f"{item} = {str(value_in_USDT)} USDT {str(dynamic)}%\n"
+                        all_items += f"{item} = {str(value_in_usdt)} USDT {str(dynamic)}%\n"
                     else:
-                        all_items += f"{item} = {str(value_in_USDT)} USDT\n"
+                        all_items += f"{item} = {str(value_in_usdt)} USDT\n"
         return f"Курс и динамика за 24 часа:\n{all_items}"
     else:
         return "Нечего отслеживать :("
@@ -113,3 +111,4 @@ def get_names_cryptocurrency():
     for i in get_exchange_rates():
         names.append(i['name'])
     return names
+    

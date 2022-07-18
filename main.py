@@ -1,9 +1,8 @@
 from aiogram import executor
-from commands import collecting_cryptocurrency, db
-from bot import disp
+from utils import collecting_cryptocurrency, database
+from bot import dispatcher
 
 if __name__ == "__main__":
-    db.setup()
+    database.setup()
     collecting_cryptocurrency.start()
-
-    executor.start_polling(disp, skip_updates=True)
+    executor.start_polling(dispatcher, skip_updates=True)
