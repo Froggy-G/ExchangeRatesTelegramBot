@@ -1,47 +1,17 @@
 import logging
-import numpy as np
-import math
-import threading
-import schedule
 
-from aiogram import Bot, Dispatcher, types, executor
+from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from config import API_TOKEN
-from commands import get_names_cryptocurrency, get_exchange_rates
-from db import DBHelper
+from commands import my_value, all_value, add_cryptocurrency, delete_cryptocurrency, view_cryptocurrency
 from states import Form
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
-from time import sleep
 
-# Initialize components
-db = DBHelper()
-
+# Initialize bot
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 disp = Dispatcher(bot, storage=storage)
-
-# collecting cryptocurrency data service
-def collecting_cryptocurrency_data():
-    db.delete_rates()
-
-    cryptocurrency_values = get_exchange_rates()
-
-    for i in cryptocurrency_values:
-        if i['name'] == "Tether USD":
-            price = i['price']
-
-    for i in cryptocurrency_values:
-        db.add_rates(i['name'], str(float(i['price'])/ float(price)))
-
-schedule.every().day.at("12:00").do(collecting_cryptocurrency_data)
-
-def checking_time():
-    while True:
-        schedule.run_pending()
-        sleep(59)
-
-collecting_cryptocurrency = threading.Thread(target=checking_time)
 
 # keyboard and buttons
 button_myvalue = KeyboardButton('/myvalue')
@@ -56,116 +26,67 @@ keyboard = ReplyKeyboardMarkup().add(button_myvalue, button_addvalue, button_del
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# message handler/sendler
+# message sendler
 @disp.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
-    await message.reply("Привет, я Exchange_rates бот!\nСлежу за текущим курсом криптовалют.\nЕсли что не понятно набирай /help", reply_markup=keyboard)
+    response = "Привет, я Exchange_rates бот!\nСлежу за текущим курсом криптовалют.\nЕсли что не понятно набирай /help"
+
+    await message.answer(response, reply_markup=keyboard)
 
 @disp.message_handler(commands=['help'])
 async def send_help(message: types.Message):
-    await message.answer("Список доступных команд:\n"
-                        "\n/myvalue показывает список валют на которые ты подписан"
-                        "\n/addvalue добавляет валюту в список"
-                        "\n/deletevalue удаляет валюту из списка"
-                        "\n/viewvalue просмотр курса валют в данную секунду к USDT"
-                        "\n/allvalue увидеть список всех возможных криптовалют для отслеживания", reply_markup=keyboard)
+    response = "Список доступных команд:\n"\
+                "\n/myvalue показывает список валют на которые ты подписан"\
+                "\n/addvalue добавляет валюту в список"\
+                "\n/deletevalue удаляет валюту из списка"\
+                "\n/viewvalue просмотр курса валют в данную секунду к USDT"\
+                "\n/allvalue увидеть список всех возможных криптовалют для отслеживания"
+
+    await message.answer(response, reply_markup=keyboard)
 
 @disp.message_handler(commands=['myvalue'])
-async def send_current_exchange_rates(message: types.Message):
-    if db.get_items(message.from_user.id):
-        all_items = ""
+async def send_my_list_cryptocurrency(message: types.Message):
+    response = my_value(message)
 
-        for item in db.get_items(message.from_user.id):
-            all_items += f"{item}, "
-        await message.answer(f"Вы следите за:\n{all_items}", reply_markup=keyboard)
-    else:
-        await message.answer("Вы не добавили валюту для отслеживания", reply_markup=keyboard)
+    await message.answer(response, reply_markup=keyboard)
 
 @disp.message_handler(commands=['allvalue'])
-async def all_cryptocurrency(message: types.Message):
-    names = get_names_cryptocurrency()
-    names.sort()
+async def send_all_cryptocurrency(message: types.Message):
+    response = all_value()
 
-    count_characters = len(str(names))
-    count_msg = math.ceil(count_characters / 4096) # 4096 telegram limit characters
-    parts_of_names = np.array_split(names, count_msg)
-
-    for part in parts_of_names:
+    for part in response:
         await message.answer(list(part), reply_markup=keyboard)
 
 @disp.message_handler(commands=['addvalue'])
-async def add_cryptocurrency(message: types.Message):
+async def send_add_cryptocurrency(message: types.Message):
+    response = "Введите название криптовалюты, например SafeGalaxy"
 
     await Form.add_cryptocurrency.set()
-    await message.answer("Введите название криптовалюты, например SafeGalaxy", reply_markup=ReplyKeyboardRemove())
+    await message.answer(response, reply_markup=ReplyKeyboardRemove())
 
 @disp.message_handler(state=Form.add_cryptocurrency)
-async def process_add_cryptocurrency(message: types.Message, state: FSMContext):
-    names = get_names_cryptocurrency()
+async def send_process_add_cryptocurrency(message: types.Message, state: FSMContext):
+    response = add_cryptocurrency(message)
 
-    if message.text in names:
-        if message.text not in db.get_items(message.from_user.id):
-            
-            db.add_item(message.text, message.from_user.id)
-            await message.reply(f"Вы добавили {message.text} в список отслеживаемых", reply_markup=keyboard)
-        else:
-            await message.reply("Уже есть в списке отслеживаемых", reply_markup=keyboard)
-    else:
-        await message.reply("Нет такой криптовалюты", reply_markup=keyboard)
+    await message.answer(response, reply_markup=keyboard)
     await state.finish()
 
 @disp.message_handler(commands=['deletevalue'])
-async def delete_cryptocurrency(message: types.Message):
+async def send_delete_cryptocurrency(message: types.Message):
+    response = "Введите название криптовалюты, например Ethereum Token"
 
     await Form.delete_cryptocurrency.set()
-    await message.answer("Введите название криптовалюты, например Ethereum Token", reply_markup=ReplyKeyboardRemove())
+    await message.answer(response, reply_markup=ReplyKeyboardRemove())
 
 @disp.message_handler(state=Form.delete_cryptocurrency)
-async def process_delete_cryptocurrency(message: types.Message, state: FSMContext):
-    names = get_names_cryptocurrency()
+async def send_process_delete_cryptocurrency(message: types.Message, state: FSMContext):
+    response = delete_cryptocurrency(message)
 
-    if message.text in names:
-        if message.text in db.get_items(message.from_user.id):
-            
-            db.delete_item(message.text, message.from_user.id)
-            await message.reply(f"Вы удалили {message.text} из списка отслеживаемых", reply_markup=keyboard)
-        else:
-            await message.reply("Нет такой криптовалюты в списке отслеживаемых", reply_markup=keyboard)
-    else:
-        await message.reply("Нет такой криптовалюты", reply_markup=keyboard)
+    await message.answer(response, reply_markup=keyboard)
     await state.finish()
 
 @disp.message_handler(commands=['viewvalue'])
-async def view_cryptocurrency(message: types.Message):
-    if db.get_items(message.from_user.id):
-        all_items = ""
-        cryptocurrency_values = get_exchange_rates()
+async def send_view_cryptocurrency(message: types.Message):
+    response = view_cryptocurrency(message)
 
-        data = db.get_rates()
-
-        for i in cryptocurrency_values:
-            if i['name'] == "Tether USD":
-                price = i['price']
-
-        for item in db.get_items(message.from_user.id):
-            for i in cryptocurrency_values:
-                if i['name'] == item:
-                    value_in_USDT = float(i['price']) / float(price)
-                    old_price = float(data[item])
-
-                    percent = 100 * value_in_USDT / old_price
-
-                    dynamic = round(percent - 100, 2)
-
-            all_items += f"{item} = {str(value_in_USDT)} USDT {str(dynamic)}%\n"
-
-        await message.answer(f"Динамика за 24 часа:\n{all_items}", reply_markup=keyboard)
-    else:
-        await message.answer("Нечего отслеживать :(", reply_markup=keyboard)
-
-
-if __name__ == "__main__":
-    db.setup()
-    collecting_cryptocurrency.start()
-
-    executor.start_polling(disp, skip_updates=True)
+    await message.answer(response, reply_markup=keyboard)
