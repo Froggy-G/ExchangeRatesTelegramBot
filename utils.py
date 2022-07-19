@@ -4,6 +4,7 @@ import threading
 import numpy
 import math
 
+from time import sleep
 from database import DBHelper
 
 database = DBHelper()
@@ -23,6 +24,7 @@ def collecting_cryptocurrency_data():
 def checking_time():
     while True:
         schedule.run_pending()
+        sleep(59)
 
 schedule.every().day.at("12:00").do(collecting_cryptocurrency_data)
 collecting_cryptocurrency = threading.Thread(target=checking_time)
