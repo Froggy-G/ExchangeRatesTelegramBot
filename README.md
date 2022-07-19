@@ -20,10 +20,8 @@
 
 1. Склонировать репозиторий:
 `git clone https://github.com/Froggy-G/Exchange_rates_tg_bot.git`
-2. Открыть файлик `.env` со следующим содержимым:
-`API_TOKEN=YourToken` вместо **YourToken** вставить **ваш** tg токен
-3. Перейти в папку со склонированным проектом.
-4. Сбилдить docker image:
+2. Перейти в папку со склонированным проектом.
+3. Сбилдить docker image:
 `docker build -t tg-bot .`
-5. А затем запустить сам сервис:
-`docker run tg-bot`
+4. А затем запустить сам сервис:
+`docker run -e "API_TOKEN=YourToken" tg-bot`
