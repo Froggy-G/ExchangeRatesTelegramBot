@@ -110,7 +110,7 @@ def get_exchange_rates():
 def get_names_cryptocurrency():
     names = []
 
-    for name in get_exchange_rates():
-        names.append(name['name'])
+    for rate in get_exchange_rates():
+        names.append(rate['name'])
     return names
     

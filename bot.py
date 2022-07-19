@@ -26,7 +26,7 @@ keyboard = ReplyKeyboardMarkup().add(button_myvalue, button_addvalue, button_del
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# message sendler
+
 @dispatcher.message_handler(commands=['start'])
 async def send_welcome(message: types.Message):
     response = "Привет, я Exchange_rates бот!\nСлежу за текущим курсом криптовалют.\nЕсли что не понятно набирай /help"
