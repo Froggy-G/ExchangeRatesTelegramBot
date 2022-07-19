@@ -86,7 +86,7 @@ def view_cryptocurrency(message):
             for value in cryptocurrency_values:
                 if value['name'] == item:
                     value_in_usdt = float(value['price']) / float(price)
-                    if data:
+                    if item in data:
                         old_price = float(data[item])
                         percent = 100 * value_in_usdt / old_price
                         dynamic = round(percent - 100, 2)
