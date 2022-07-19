@@ -1,15 +1,15 @@
 import logging
 
+from decouple import config
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
-from config import API_TOKEN
 from utils import my_value, all_value, add_cryptocurrency, delete_cryptocurrency, view_cryptocurrency
 from states import Form
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
 
 # Initialize bot
-bot = Bot(token=API_TOKEN)
+bot = Bot(token=config('API_TOKEN'))
 storage = MemoryStorage()
 dispatcher = Dispatcher(bot, storage=storage)
 
