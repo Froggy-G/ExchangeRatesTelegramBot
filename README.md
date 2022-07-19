@@ -24,4 +24,4 @@
 3. Сбилдить docker image:
 `docker build -t tg-bot .`
 4. А затем запустить сам сервис:
-`docker run -e "API_TOKEN=YourToken" tg-bot`
+`docker run -e "API_TOKEN=YourToken" tg-bot` вместо YourToken введите ваш tg токен
